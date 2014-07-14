@@ -1,20 +1,113 @@
-# Reproducible Research: Peer Assessment 1
-
+---
+title: "PA1_template.Rmd"
+author: "Huihui Duan"
+date: "July 10, 2014"
+output: html_document
+---
 
 ## Loading and preprocessing the data
-
-
+```{r}
+################################################################################
+data <- read.csv(file = "activity.csv", header = TRUE, 
+                 sep =",", quote = "\"", as.is = TRUE)
+str(data)
+data$date <- as.Date(data$date)
+str(data)
+```
 
 ## What is mean total number of steps taken per day?
+```{r}
+################################################################################
+# Total Number of Steps Taken Each Day
+total_by_day <- with(data, tapply(steps, date, sum))
+total_by_day_no_NA <- subset(total_by_day, total_by_day != "NA")
+plot(as.Date(names(total_by_day_no_NA)), total_by_day_no_NA, type = "h", 
+     xlab = "Date", ylab = "Total Number of Steps Taken Each Day")
+```
 
+```{r}
+# Mean Number of Steps Taken Each Day
+mean_by_day <- with(data, tapply(steps, date, mean))
+mean_by_day_no_NA <- subset(mean_by_day, mean_by_day != "NA")
+plot(as.Date(names(mean_by_day_no_NA)), mean_by_day_no_NA, type = "h", 
+     xlab = "Date", ylab = "Mean Number of Steps Taken Each Day")
+```
 
+```{r}
+# Median Number of Steps Taken Each Day
+data_na_rm <- subset(data, steps != "NA")
+median_by_day <- with(data_na_rm, tapply(steps, date, median))
+median_by_day_no_NA <- subset(median_by_day, median_by_day != "NA")
+plot(as.Date(names(median_by_day_no_NA)), median_by_day_no_NA, type = "h", 
+     xlab = "Date", ylab = "Median Number of Steps Taken Each Day")
+```
 
 ## What is the average daily activity pattern?
+```{r}
+################################################################################
+mean_by_interval_no_NA <- with(data_na_rm, 
+                               tapply(steps, as.factor(interval), mean))
+plot(names(mean_by_interval_no_NA), mean_by_interval_no_NA, 
+     type = "l", xlab = "Date", 
+     ylab = "Mean Number of Steps Taken Each 5-Minute Interval")
 
-
+which.max(mean_by_interval_no_NA)
+```
 
 ## Imputing missing values
+```{r}
+################################################################################
+str(data)
+sum(is.na(data$steps))
 
+# impute using total mean of steps without NA
+data_imputed <- data
+for (i in 1:dim(data)[1]) {
+  if (is.na(data_imputed$steps[i]) == 1) {
+    data_imputed$steps[i] <- mean(data_na_rm$steps)
+  }
+}
+
+summary(data_imputed)
+
+imputed_total_by_day <- with(data_imputed, tapply(steps, date, sum))
+plot(as.Date(names(imputed_total_by_day)), imputed_total_by_day, type = "h", 
+     xlab = "Date", ylab = "Imputed Total Number of Steps Taken Each Day")
+
+imputed_mean_by_day <- with(data_imputed, tapply(steps, date, mean))
+plot(as.Date(names(imputed_mean_by_day)), imputed_mean_by_day, type = "h", 
+     xlab = "Date", ylab = "Imputed Mean Number of Steps Taken Each Day")
+
+imputed_median_by_day <- with(data_imputed, tapply(steps, date, median))
+plot(as.Date(names(imputed_median_by_day)), imputed_median_by_day, type = "h", 
+     xlab = "Date", ylab = "Imputed Median Number of Steps Taken Each Day")
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+data_imputed$weektype <- weekdays(data_imputed$date)
+
+for (i in 1 : dim(data_imputed)[1]) {
+  if (data_imputed$weektype[i] %in% c("Saturday", "Sunday")) {
+    data_imputed$weektype[i] <- "Weekend"
+  } else {
+    data_imputed$weektype[i]<- "Weekday"
+  }
+}
+
+data_imputed$weektype <- as.factor(data_imputed$weektype)
+summary(data_imputed)
+
+library(ggplot2)
+pdf("./figures/panel_plot.pdf")
+ggplot(data_imputed, aes(x = interval, y = steps)) +
+  stat_summary(fun.y=mean, colour="black", geom="line", aes(group = 1)) + 
+  facet_grid(.~ weektype)
+dev.off()  
+
+ggplot(data_imputed, aes(x = interval, y = steps)) +
+  stat_summary(fun.y=mean, colour="black", geom="line", aes(group = 1)) + 
+  facet_grid(.~ weektype)
+```
+
