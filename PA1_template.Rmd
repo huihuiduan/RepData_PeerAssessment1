@@ -105,9 +105,5 @@ ggplot(data_imputed, aes(x = interval, y = steps)) +
   stat_summary(fun.y=mean, colour="black", geom="line", aes(group = 1)) + 
   facet_grid(.~ weektype)
 dev.off()  
-
-ggplot(data_imputed, aes(x = interval, y = steps)) +
-  stat_summary(fun.y=mean, colour="black", geom="line", aes(group = 1)) + 
-  facet_grid(.~ weektype)
 ```
 
