@@ -8,7 +8,7 @@ output: html_document
 ## Loading and preprocessing the data
 ```{r}
 ################################################################################
-data <- read.csv(file = "activity.csv", header = TRUE, 
+data <- read.csv(file = "./activity.csv", header = TRUE, 
                  sep =",", quote = "\"", as.is = TRUE)
 str(data)
 data$date <- as.Date(data$date)
